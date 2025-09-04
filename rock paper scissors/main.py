@@ -1,82 +1,97 @@
+import os
 import random
 import pygame
 
-print("welcome to my rockpaper scissors game")
-print("you will be playing against the computer")
-
 class Button:
-    def __init__(self, color, x, y, width, height, name):
-        self.color = color
+    def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.name = name
 
-    def clicked(self, mouse_pos=None):
-        if mouse_pos is None:
-            mouse_pos = pygame.mouse.get_pos()
-        return (self.x < mouse_pos[0] < self.x + self.width) and (self.y < mouse_pos[1] < self.y + self.height)
+    def clicked(self):
+        mouse_pos = pygame.mouse.get_pos()
+        if (self.x < mouse_pos[0] < self.x + self.width) and (self.y < mouse_pos[1] < self.y + self.height):
+            return True
+        return False
 
-
-class RPSGame:
+class RpsGame:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600))
-        pygame.display.set_caption("rps smasher")
+        self.screen = pygame.display.set_mode((960, 640))
+        pygame.display.set_caption("RPS Smasher")
 
-        # load images (may raise if files missing)
-        self.bg = pygame.image.load("background.jpeg").convert()
-        self.r_btn = pygame.image.load("rock button.png").convert_alpha()
-        self.p_btn = pygame.image.load("paper button.png").convert_alpha()
-        self.s_btn = pygame.image.load("scissors button.png").convert_alpha()
-        self.choose_rock = pygame.image.load("rock.png").convert_alpha()
-        self.choose_paper = pygame.image.load("paper.png").convert_alpha()
-        self.choose_scissors = pygame.image.load("scissors.png").convert_alpha()
+        base = os.path.dirname(__file__)
 
-        # buttons (positions and sizes should match your images)
-        self.rock_btn = Button((255, 0, 0), 20, 500, 250, 80, "rock")
-        self.paper_btn = Button((0, 255, 0), 330, 500, 250, 80, "paper")
-        self.scissors_btn = Button((0, 0, 255), 640, 500, 250, 80, "scissors")
+        def safe_load_image(filename, size=None):
+            path = os.path.join(base, filename)
+            try:
+                img = pygame.image.load(path).convert_alpha()
+                if size:
+                    img = pygame.transform.smoothscale(img, size)
+                return img
+            except Exception:
+                # placeholder transparent surface if missing
+                w, h = size if size else (200, 100)
+                surf = pygame.Surface((w, h), flags=pygame.SRCALPHA)
+                surf.fill((100, 100, 100, 180))
+                return surf
 
-        # fonts and texts
-        self.font = pygame.font.Font('freesansbold.ttf', 48)
-        self.title_text = self.font.render('rock paper scissors', True, (0, 0, 0))
-        self.small_font = pygame.font.Font('freesansbold.ttf', 24)
+        # Background and assets (use the actual names in the folder)
+        self.bg = safe_load_image("background.jpeg", (960, 640))
 
-        # scores and choices
-        self.player_score = 0
-        self.computer_score = 0
+        # Button images (folder has names with spaces)
+        self.r_btn = safe_load_image("rock button.png", (200, 100))
+        self.p_btn = safe_load_image("paper button.png", (200, 100))
+        self.s_btn = safe_load_image("scissors button.png", (200, 100))
+
+        # Choice images
+        self.choose_rock = safe_load_image("rock.png", (150, 150))
+        self.choose_paper = safe_load_image("paper.png", (150, 150))
+        self.choose_scissors = safe_load_image("scissors.png", (150, 150))
+
+        # Buttons (positions match original layout)
+        self.rock_btn = Button(20, 500, 200, 100)
+        self.paper_btn = Button(330, 500, 200, 100)
+        self.scissors_btn = Button(640, 500, 200, 100)
+
+        self.font = pygame.font.Font(None, 90)
+        self.small_font = pygame.font.Font(None, 40)
+        self.title_text = self.font.render("RPS SMASHER", True, (255, 255, 255))
+
+        self.pl_score = 0
+        self.pc_score = 0
         self.p_option = None
         self.pc_random_choice = None
 
-    def player(self, mouse_pos):
-        if self.rock_btn.clicked(mouse_pos):
+    def player(self):
+        if self.rock_btn.clicked():
             self.p_option = "rock"
-        elif self.paper_btn.clicked(mouse_pos):
+        elif self.paper_btn.clicked():
             self.p_option = "paper"
-        elif self.scissors_btn.clicked(mouse_pos):
+        elif self.scissors_btn.clicked():
             self.p_option = "scissors"
+        return self.p_option
 
     def computer(self):
-        options = ["rock", "paper", "scissors"]
-        self.pc_random_choice = random.choice(options)
+        option = ["rock", "paper", "scissors"]
+        self.pc_random_choice = random.choice(option)
+        return self.pc_random_choice
 
     def update_scores(self):
         pl = self.p_option
         pc = self.pc_random_choice
         if pl is None or pc is None:
             return
-        if pl == pc:
-            return
-        # cases where player loses
         if (pl == "rock" and pc == "paper") or (pl == "paper" and pc == "scissors") or (pl == "scissors" and pc == "rock"):
-            self.computer_score += 1
+            self.pc_score += 1
+        elif pl == pc:
+            pass
         else:
-            self.player_score += 1
+            self.pl_score += 1
 
     def draw_choices(self):
-        # player choice on left
+        # Draw player's choice
         if self.p_option == "rock":
             self.screen.blit(self.choose_rock, (120, 200))
         elif self.p_option == "paper":
@@ -84,7 +99,7 @@ class RPSGame:
         elif self.p_option == "scissors":
             self.screen.blit(self.choose_scissors, (120, 200))
 
-        # computer choice on right
+        # Draw computer's choice (same art used for PC for now)
         if self.pc_random_choice == "rock":
             self.screen.blit(self.choose_rock, (720, 200))
         elif self.pc_random_choice == "paper":
@@ -97,37 +112,37 @@ class RPSGame:
         self.screen.blit(self.r_btn, (20, 500))
         self.screen.blit(self.p_btn, (330, 500))
         self.screen.blit(self.s_btn, (640, 500))
-        self.screen.blit(self.title_text, (200, 20))
+        self.screen.blit(self.title_text, (330, 0))
 
     def draw_score(self):
-        score_text = self.small_font.render(f"Player: {self.player_score}   Computer: {self.computer_score}", True, (255, 255, 255))
-        self.screen.blit(score_text, (10, 10))
+        score_text = self.small_font.render(f"Player: {self.pl_score}   Computer: {self.pc_score}", True, (255, 255, 255))
+        self.screen.blit(score_text, (300, 100))
 
     def game_loop(self):
         run = True
         clock = pygame.time.Clock()
-        while run:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = event.pos
-                    # set player choice based on click
-                    self.player(pos)
-                    # if a choice was made, pick for computer and update scores
-                    if self.p_option is not None:
-                        self.computer()
-                        self.update_scores()
 
+        while run:
             self.image_reset()
             self.draw_score()
             self.draw_choices()
             pygame.display.update()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # if any button was clicked, set player choice, get computer choice and update scores
+                    if self.rock_btn.clicked() or self.paper_btn.clicked() or self.scissors_btn.clicked():
+                        self.player()
+                        self.computer()
+                        self.update_scores()
+
             clock.tick(30)
 
         pygame.quit()
 
-
 if __name__ == "__main__":
-    rps = RPSGame()
-    rps.game_loop()
+    game = RpsGame()
+
+game.game_loop()

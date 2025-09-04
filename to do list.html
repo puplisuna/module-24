@@ -1,0 +1,52 @@
+<!-- ...existing code... -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do List</title>
+</head>
+
+<body>
+    <h3>add your to do list here</h3>
+    <form id="myform">
+        <input id="myinput" type="text" autocomplete="off" />
+        <button type="submit">Add</button>
+    </form>
+
+    <h3>to-do list</h3>
+    <ul id="myitem"></ul>
+
+    <script>
+        const myForm = document.getElementById("myform");
+        const myInput = document.getElementById("myinput");
+        const myItem = document.getElementById("myitem");
+
+        myForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const value = myInput.value.trim();
+            if (!value) return;
+            createItem(value);
+        });
+
+        function createItem(text) {
+            const li = document.createElement("li");
+            li.textContent = text + " ";
+
+            const delBtn = document.createElement("button");
+            delBtn.type = "button";
+            delBtn.textContent = "Delete";
+            delBtn.addEventListener("click", () => li.remove());
+
+            li.appendChild(delBtn);
+            myItem.appendChild(li);
+
+            myInput.value = "";
+            myInput.focus();
+        }
+    </script>
+</body>
+
+</html>
+<!-- ...existing code... --
