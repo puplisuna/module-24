@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>asyncawait</title>
+</head>
+<body>
+    <h2>javascript async / await</h2>
+    <h1 id="result"></h1>
+    <script>
+        async function add(a, b) {
+            // use a resolved Promise so await is meaningful here
+            let response = await Promise.resolve(a + b);
+            display(response);
+        }
+        function display(some) {
+            document.getElementById("result").innerHTML = some;
+        }
+        add(5, 20);
+    </script>
+</body>
+</html>
